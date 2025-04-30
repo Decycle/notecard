@@ -51,6 +51,9 @@ const StatsPage = () => {
   const getQuestionStats = useQuizStore(
     (state) => state.getQuestionStats
   )
+  const selectQuestion = useQuizStore(
+    (state) => state.selectQuestion
+  )
 
   // Calculate overall stats with useMemo to prevent recalculation on every render
   const {
@@ -99,6 +102,7 @@ const StatsPage = () => {
       try {
         // Use relative path that works with base URL
         const response = await fetch('./question.json')
+        console.log(response)
         const data = await response.json()
         setQuestions(data)
         setTotalQuestions(data.length)
@@ -205,6 +209,16 @@ const StatsPage = () => {
   }
 
   const handleBackToQuiz = () => {
+    // Clear selected question when going back to main quiz
+    selectQuestion(null)
+    navigate('/')
+  }
+
+  // Handle clicking on a specific question
+  const handleQuestionSelect = (questionId: string) => {
+    // Set the selected question ID in the store
+    selectQuestion(questionId)
+    // Navigate back to the main quiz page
     navigate('/')
   }
 
@@ -264,7 +278,7 @@ const StatsPage = () => {
 
   return (
     <div className='h-full bg-gray-100 flex flex-col overflow-hidden'>
-      <header className='w-full py-3 px-4 flex justify-between items-center border-b border-gray-200 bg-white shadow-sm'>
+      <header className='w-full py-3 px-4 flex justify-between items-center border-b border-gray-200 bg-white shadow-sm sticky top-0 z-10'>
         <h1 className='text-2xl font-bold'>Stats</h1>
         <div className='flex items-center gap-3'>
           <button
@@ -393,6 +407,14 @@ const StatsPage = () => {
                 Question Stats
               </h2>
 
+              <div className='mb-3 bg-blue-50 p-3 rounded-md border border-blue-200'>
+                <p className='text-sm text-blue-700'>
+                  <span className='font-medium'>Tip:</span>{' '}
+                  Click on any question to practice it
+                  again!
+                </p>
+              </div>
+
               <div className='overflow-x-auto'>
                 <table className='min-w-full divide-y divide-gray-200'>
                   <thead className='bg-gray-50'>
@@ -428,8 +450,11 @@ const StatsPage = () => {
                     {sortedQuestionStats.map((stat) => (
                       <tr
                         key={stat.id}
-                        className='hover:bg-gray-50'>
-                        <td className='px-6 py-4 whitespace-normal text-sm font-medium text-gray-900'>
+                        className='hover:bg-blue-50 cursor-pointer transition-colors'
+                        onClick={() =>
+                          handleQuestionSelect(stat.id)
+                        }>
+                        <td className='px-6 py-4 whitespace-normal text-sm font-medium text-gray-900 hover:text-blue-700'>
                           {stat.title}
                         </td>
                         <td className='px-6 py-4 whitespace-nowrap text-sm text-center font-medium'>

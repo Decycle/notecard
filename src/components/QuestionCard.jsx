@@ -92,9 +92,20 @@ export default function QuestionCard({
 
   const getUserSelectedAnswers = () => {
     // Convert selected indices to answer titles for the explanation
-    return Array.from(selectedAnswers).map(
-      (index) => question.answers[index].title
-    )
+    try {
+      return Array.from(selectedAnswers).map(
+        (index) => question.answers[index].title
+      )
+    } catch (error) {
+      console.error(
+        'Error getting user selected answers:',
+        error
+      )
+      console.log(question)
+      console.log(question.answers)
+      console.log(selectedAnswers)
+      return []
+    }
   }
 
   return (

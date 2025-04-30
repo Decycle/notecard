@@ -16,11 +16,13 @@ interface AnswerHistory {
 
 interface QuizState {
   answerHistory: AnswerHistory
+  selectedQuestionId: string | null
   addQuestionResult: (
     questionId: string,
     isCorrect: boolean
   ) => void
   resetScores: () => void
+  selectQuestion: (questionId: string | null) => void
   getQuestionStats: (questionId: string) => {
     totalAttempts: number
     correctAttempts: number
@@ -36,6 +38,7 @@ const useQuizStore = create<QuizState>()(
     (set, get) => ({
       // State
       answerHistory: {},
+      selectedQuestionId: null,
 
       // Actions
       addQuestionResult: (questionId, isCorrect) => {
@@ -58,6 +61,10 @@ const useQuizStore = create<QuizState>()(
       },
 
       resetScores: () => set({ answerHistory: {} }),
+
+      selectQuestion: (questionId) => {
+        set({ selectedQuestionId: questionId })
+      },
 
       getQuestionStats: (questionId) => {
         const state = get()
@@ -99,7 +106,8 @@ const useQuizStore = create<QuizState>()(
       storage: createJSONStorage(() => sessionStorage), // use sessionStorage
       partialize: (state) => ({
         answerHistory: state.answerHistory,
-      }), // only persist answerHistory
+        selectedQuestionId: state.selectedQuestionId,
+      }), // persist answerHistory and selectedQuestionId
     }
   )
 )

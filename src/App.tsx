@@ -27,11 +27,13 @@ interface QuizState {
     string,
     Array<{ timestamp: number; isCorrect: boolean }>
   >
+  selectedQuestionId: string | null
   addQuestionResult: (
     questionId: string,
     isCorrect: boolean
   ) => void
   resetScores: () => void
+  selectQuestion: (questionId: string | null) => void
   getQuestionStats: (questionId: string) => {
     totalAttempts: number
     correctAttempts: number
@@ -60,6 +62,12 @@ function App() {
   )
   const resetScores = useQuizStore(
     (state: QuizState) => state.resetScores
+  )
+  const selectedQuestionId = useQuizStore(
+    (state: QuizState) => state.selectedQuestionId
+  )
+  const selectQuestion = useQuizStore(
+    (state: QuizState) => state.selectQuestion
   )
 
   // Get the stats directly from the answerHistory
@@ -115,14 +123,42 @@ function App() {
     loadQuestions()
   }, [])
 
+  // Effect to handle selected question ID from stats page
+  useEffect(() => {
+    if (
+      selectedQuestionId &&
+      questions.length > 0 &&
+      !loading
+    ) {
+      // Find the question with the selected ID
+      const selectedQuestion = questions.find(
+        (q) => q.id === selectedQuestionId
+      )
+
+      if (selectedQuestion) {
+        // Set the current question to the selected one
+        setCurrentQuestion(selectedQuestion)
+
+        // Optional: Clear the selected question ID to ensure
+        // normal random selection in future navigations
+        // selectQuestion(null)
+      }
+    }
+  }, [selectedQuestionId, questions, loading])
+
   // Add a new effect to refresh when navigating back from stats page
   // This will be triggered when the component mounts or remounts
   useEffect(() => {
     // If we already have questions loaded but no current question
-    if (questions.length > 0 && !currentQuestion) {
+    // and no selected question ID, choose a random one
+    if (
+      questions.length > 0 &&
+      !currentQuestion &&
+      !selectedQuestionId
+    ) {
       selectWeightedRandomQuestion()
     }
-  }, [questions, currentQuestion])
+  }, [questions, currentQuestion, selectedQuestionId])
 
   // Select a weighted random question giving higher chance to questions with lower success rates
   const selectWeightedRandomQuestion = (
@@ -176,6 +212,10 @@ function App() {
 
   // Use weighted selection for the next question instead of pure random
   const handleNextQuestion = () => {
+    // Clear any selected question ID when moving to next question
+    if (selectedQuestionId) {
+      selectQuestion(null)
+    }
     selectWeightedRandomQuestion()
   }
 
@@ -291,11 +331,32 @@ function App() {
             </div>
           ) : (
             currentQuestion && (
-              <QuestionCard
-                question={currentQuestion}
-                onNext={handleNextQuestion}
-                onAnswerSubmit={handleAnswerSubmit}
-              />
+              <>
+                {selectedQuestionId && (
+                  <div className='bg-blue-50 p-3 mb-4 rounded-lg border border-blue-200 flex justify-between items-center'>
+                    <p className='text-sm text-blue-700'>
+                      <span className='font-semibold'>
+                        Practice Mode:
+                      </span>{' '}
+                      You selected a specific question to
+                      practice.
+                    </p>
+                    <button
+                      onClick={() => {
+                        selectQuestion(null)
+                        selectWeightedRandomQuestion()
+                      }}
+                      className='text-sm px-2 py-1 bg-blue-100 text-blue-800 rounded hover:bg-blue-200'>
+                      Return to Random
+                    </button>
+                  </div>
+                )}
+                <QuestionCard
+                  question={currentQuestion}
+                  onNext={handleNextQuestion}
+                  onAnswerSubmit={handleAnswerSubmit}
+                />
+              </>
             )
           )}
         </div>
