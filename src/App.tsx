@@ -89,7 +89,8 @@ function App() {
     const loadQuestions = async () => {
       setLoading(true)
       try {
-        const response = await fetch('/question.json')
+        // Use relative path that works with base URL
+        const response = await fetch('./question.json')
         const data = await response.json()
         setQuestions(data)
         setError(null)

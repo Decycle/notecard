@@ -5,6 +5,7 @@ import { defineConfig } from 'vite'
 
 // https://vite.dev/config/
 export default defineConfig({
+  base: '/notecard/', // Base path for GitHub Pages
   plugins: [react(), tailwindcss()],
   resolve: {
     alias: {
